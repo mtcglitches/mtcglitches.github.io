@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTC Glitches</title>
+<style>
+  @font-face {
+    font-family: 'MultiCraftFont';
+    src: url('./MultiCraftFont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+</style>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07080a;
+    --surface: #0e1015;
+    --border: #1e2028;
+    --text: #d4d8e8;
+    --muted: #4a4f66;
+    --accent: #00e5ff;
+    --gold: #ffd700;
+    --silver: #b0bec5;
+    --bronze: #ff8a50;
+    --glow: rgba(0,229,255,0.18);
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'MultiCraftFont', monospace;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem 4rem;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,229,255,0.025) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,229,255,0.025) 40px);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  h1 {
+    font-family: 'MultiCraftFont', monospace;
+    font-size: clamp(3rem, 10vw, 6rem);
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-shadow:
+      0 0 20px var(--accent),
+      0 0 60px rgba(0,229,255,0.3);
+    line-height: 1;
+    animation: flicker 8s infinite;
+    text-transform: none;
+  }
+
+  @keyframes flicker {
+    0%,93%,95%,97%,100% { opacity: 1; }
+    94%,96% { opacity: 0.85; }
+  }
+
+  .board {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.15s;
+    animation: slideIn 0.4s both;
+  }
+
+  .row:hover {
+    border-color: rgba(0,229,255,0.3);
+    transform: translateX(3px);
+  }
+
+  .row.rank-1 { border-color: rgba(255,215,0,0.4); }
+  .row.rank-2 { border-color: rgba(176,190,197,0.3); }
+  .row.rank-3 { border-color: rgba(255,138,80,0.3); }
+
+  .row.rank-1 .rank-num { color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.6); }
+  .row.rank-2 .rank-num { color: var(--silver); }
+  .row.rank-3 .rank-num { color: var(--bronze); text-shadow: 0 0 8px rgba(255,138,80,0.4); }
+
+  .rank-accent {
+    width: 3px;
+    align-self: stretch;
+    flex-shrink: 0;
+  }
+  .rank-1 .rank-accent { background: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.5); }
+  .rank-2 .rank-accent { background: var(--silver); }
+  .rank-3 .rank-accent { background: var(--bronze); }
+  .row:not(.rank-1):not(.rank-2):not(.rank-3) .rank-accent { background: var(--border); }
+
+  .rank-num {
+    width: 64px;
+    text-align: center;
+    font-size: 20px;
+    color: var(--muted);
+    flex-shrink: 0;
+    padding: 0 8px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .player-name {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: none;
+  }
+
+  .row.rank-1 .player-name { color: #fff; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .error {
+    color: #ff5555;
+    font-size: 13px;
+    background: rgba(255,85,85,0.08);
+    border: 1px solid rgba(255,85,85,0.25);
+    border-radius: 4px;
+    padding: 12px 20px;
+    max-width: 560px;
+    width: 100%;
+    text-align: center;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="lb-title">MTC Glitches</h1>
+</header>
+
+<div class="board" id="board"></div>
+
+<script>
+/* ─── CONFIGURATION ──────────────────────────────────────────────────────────
+   Edit the values below, or point CONFIG_URL to an external leaderboard.json
+   ─────────────────────────────────────────────────────────────────────────── */
+
+const CONFIG_URL = null; // e.g. "./leaderboard.json" or a raw GitHub URL
+
+const CONFIG = {
+  "title": "MTC Glitches",
+  "players": [
+    "torvalds - 1",
+    "gvanrossum - 2",
+    "antirez - 3",
+    "matz - 4",
+    "dhh - 5",
+    "fabpot - 6",
+    "tj - 7",
+    "yyx990803 - 8"
+  ]
+};
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+async function load() {
+  let cfg = CONFIG;
+  if (CONFIG_URL) {
+    try {
+      const res = await fetch(CONFIG_URL);
+      cfg = await res.json();
+    } catch(e) {
+      showError("Could not load config from: " + CONFIG_URL);
+      return;
+    }
+  }
+  render(cfg);
+}
+
+function render(cfg) {
+  if (cfg.title) document.getElementById('lb-title').textContent = cfg.title;
+  document.title = cfg.title || 'MTC Glitches';
+
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  if (!cfg.players || !cfg.players.length) {
+    showError('No players defined in config.');
+    return;
+  }
+
+  // Sort by the spot number after the " - "
+  const parsed = cfg.players.map(entry => {
+    const parts = entry.split(' - ');
+    const name = parts[0].trim();
+    const spot = parseInt(parts[1]) || 0;
+    return { name, spot };
+  }).sort((a, b) => a.spot - b.spot);
+
+  parsed.forEach((player, i) => {
+    const rank = player.spot;
+    const rankClass = rank <= 3 ? ' rank-' + rank : '';
+    const row = document.createElement('div');
+    row.className = 'row' + rankClass;
+    row.style.animationDelay = (i * 55) + 'ms';
+    row.innerHTML = `
+      <div class="rank-accent"></div>
+      <div class="rank-num">#${rank}</div>
+      <div class="divider"></div>
+      <div class="player-name">${escHtml(player.name)}</div>
+    `;
+    board.appendChild(row);
+  });
+}
+
+function showError(msg) {
+  const board = document.getElementById('board');
+  board.innerHTML = `<div class="error">${escHtml(msg)}</div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+load();
+</script>
+</body>
+</html>
